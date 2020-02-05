@@ -71,13 +71,13 @@
         state: touch
     - name: Check laravel App Exists 
       stat: 
-        path: /srv/www/app/http/.env
+        path: "{{ app_root }}/.env"
       register: laravel_check
     - debug:
         msg: "Laravel not installed"
       when: laravel_check.stat.exists == False
     - name: Install Laravel Framework
-      command: composer create-project --prefer-dist laravel/laravel /srv/www/app/http/
+      command: "composer create-project --prefer-dist laravel/laravel {{ app_root }}"
       when: laravel_check.stat.exists == False
     - name: Adsujt Permission files for Laravel 
       file:
