@@ -4,46 +4,7 @@
   hosts: vm-pwcdev
 
   tasks:
-    - name: Install CentOS Update 
-      yum:
-        name: '*'
-        state: latest
-    - name: Install Httpd 
-      yum:
-        name: httpd
-        state: latest
-    - name: Install Epel-Release
-      yum:
-        name: epel-release
-        state: latest
-    - name: Install yum-utils
-      yum:
-        name: yum-utils
-        state: latest
-    - name: Install Remi Repository (PHP)
-      yum:
-        name: http://rpms.remirepo.net/enterprise/remi-release-7.rpm
-        state: latest
-        enablerepo: "remi-php72"
-    - name: Install PHP (7.2) Modules
-      yum:
-        name: 
-          - php 
-          - php-common 
-          - php-opcache 
-          - php-mcrypt 
-          - php-cli 
-          - php-gd 
-          - php-curl 
-          - php-mysqlnd
-          - php-pdo
-          - php-mbstring
-          - php-json
-          - php-xml
-    - name: Install Git
-      yum:
-        name: git
-        state: latest 
+    - import_tasks: tasks/packages.yaml 
     - name: Enable and Running Httpd
       systemd:
         name: httpd
@@ -71,4 +32,21 @@
       command: mv /usr/local/bin/composer.phar /usr/local/bin/composer
     - name: Install PHP Composer (3/3)
       command: chmod +x /usr/local/bin/composer
-        
+    - name: Prepare Laravel Setup (1/2)
+      file:
+        path: /srv/www/app/http
+        state: directory
+    - name: Prepare Laravel Setup (2/2)
+      file:
+        path: /srv/www/app/logs
+        state: directory
+    - name: Check laravel App Exists 
+      stat: 
+        path: /srv/www/app/http/.env
+      register: laravel_check
+    - debug:
+        msg: "Laravel not installed"
+      when: laravel_check.stat.exists == False
+    - name: Install Laravel Framework
+      command: composer create-project --prefer-dist laravel/laravel /srv/www/app/http/
+      when: laravel_check.stat.exists == False
