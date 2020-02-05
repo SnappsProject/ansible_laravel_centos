@@ -47,3 +47,7 @@
   yum:
     name: unzip
     state: latest 
+- name: Install Redis
+  yum:
+    name: redis
+    state: latest 

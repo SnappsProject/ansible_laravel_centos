@@ -20,6 +20,11 @@
         name: httpd
         enabled: yes
         state: started
+    - name: Enable and Running Redis Server
+      systemd:
+        name: redis
+        enabled: yes
+        state: started
     - name: Enable Firewall Rules (http)
       firewalld:
         service: http
