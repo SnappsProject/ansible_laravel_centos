@@ -2,9 +2,19 @@
 - name: Deploy - PwC Alumni - Dev Environment
   gather_facts: No
   hosts: vm-pwcdev
-
+  vars:
+    server_name: 'laravel.dev'
+    app_root: '/srv/www/app/http/'
+    document_root: '/srv/www/app/http/public'
+    apache_logs: '/srv/www/app/logs'
+    composer_url: 'https://getcomposer.org/download/1.9.3/composer.phar'
   tasks:
-    - import_tasks: tasks/packages.yaml 
+#    - import_tasks: tasks/packages.yaml 
+    - name: Configure Apache2 Vhost
+      template:
+        src: templates/vhost.j2 
+        dest: /etc/httpd/conf.d/vhost.conf
+        backup: yes 
     - name: Enable and Running Httpd
       systemd:
         name: httpd
@@ -26,7 +36,7 @@
         immediate: yes
     - name: Install PHP Composer (1/3)
       get_url:
-        url: https://getcomposer.org/download/1.9.3/composer.phar  
+        url: "{{ composer_url }}"
         dest: /usr/local/bin
     - name: Install PHP Composer (2/3)
       command: mv /usr/local/bin/composer.phar /usr/local/bin/composer
@@ -34,12 +44,24 @@
       command: chmod +x /usr/local/bin/composer
     - name: Prepare Laravel Setup (1/2)
       file:
-        path: /srv/www/app/http
+        path: "{{ app_root }}"
         state: directory
     - name: Prepare Laravel Setup (2/2)
       file:
-        path: /srv/www/app/logs
+        path: "{{ apache_logs }}"
         state: directory
+    - name: Create Apache logs file
+      file:
+        path: "{{ apache_logs }}/access_log"
+        owner: apache
+        group: apache
+        state: touch
+    - name: Create Apache logs file
+      file:
+        path: "{{ apache_logs }}/error_log"
+        owner: apache
+        group: apache
+        state: touch
     - name: Check laravel App Exists 
       stat: 
         path: /srv/www/app/http/.env
@@ -50,3 +72,30 @@
     - name: Install Laravel Framework
       command: composer create-project --prefer-dist laravel/laravel /srv/www/app/http/
       when: laravel_check.stat.exists == False
+    - name: Adsujt Permission files for Laravel 
+      file:
+        path: /srv/www/app/http/storage
+        owner: apache
+        group: apache
+    - name: Adsujt Permission files for Laravel
+      file:
+        path: /srv/www/app/http/public
+        owner: apache
+        group: apache
+    - name: Adsujt Permission files for Laravel 
+      file:
+        path: /srv/www/app/http/bootstrap/cache
+        owner: apache
+        group: apache
+    - name: Fix SElinux context for Apache logs
+      command:  "chcon -R -t httpd_sys_rw_content_t {{ apache_logs }}"
+    - name: Fix SElinux context for laravel
+      command:  "chcon -R -t httpd_sys_content_t {{ app_root }}"
+    - name: Fix SElinux context for laravel
+      command:  "chcon -R -t httpd_sys_rw_content_t {{ app_root }}/storage"
+    - name: Fix SElinux context for laravel
+      command:  "chcon -R -t httpd_sys_rw_content_t {{ app_root }}/bootstrap/cache"
+    - name: Reload Httpd
+      systemd:
+        name: httpd
+        state: reloaded
