@@ -1,5 +1,5 @@
 ---
-- name: Deploy - PwC Alumni - Dev Environment
+- name: Deploy - Laravel CentOS - Dev Environment
   gather_facts: No
   hosts: vm-pwcdev
   vars:
@@ -81,19 +81,19 @@
       when: laravel_check.stat.exists == False
     - name: Adsujt Permission files for Laravel 
       file:
-        path: /srv/www/app/http/storage
+        path: "{{ app_root }}/storage"
         recurse: yes
         owner: apache
         group: apache
     - name: Adsujt Permission files for Laravel
       file:
-        path: /srv/www/app/http/public
+        path: "{{ document_root }}"
         recurse: yes
         owner: apache
         group: apache
     - name: Adsujt Permission files for Laravel 
       file:
-        path: /srv/www/app/http/bootstrap/cache
+        path: "{{ app_root }}/bootstrap/cache"
         recurse: yes
         owner: apache
         group: apache
