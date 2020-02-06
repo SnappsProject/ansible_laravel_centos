@@ -20,6 +20,11 @@
         name: httpd
         enabled: yes
         state: started
+    - name: Enable and Running MariaDB
+      systemd:
+        name: mariadb
+        enabled: yes
+        state: started
     - name: Enable and Running Redis Server
       systemd:
         name: redis
@@ -90,18 +95,24 @@
         recurse: yes
         owner: apache
         group: apache
-    - name: Adsujt Permission files for Laravel
+    - name: Fix Permission files for Laravel
       file:
         path: "{{ document_root }}"
         recurse: yes
         owner: apache
         group: apache
-    - name: Adsujt Permission files for Laravel 
+    - name: Fix Permission files for Laravel 
       file:
         path: "{{ app_root }}/bootstrap/cache"
         recurse: yes
         owner: apache
         group: apache
+    - name: Set httpd_can_network_connect_db flag on and keep it persistent across reboots
+      seboolean:
+        name: httpd_can_network_connect_db
+        state: yes
+        persistent: yes
+#TODO selinux module not work...https://docs.ansible.com/ansible/latest/modules/sefcontext_module.html 
     - name: Fix SElinux context for Apache logs
       command:  "chcon -R -t httpd_sys_rw_content_t {{ apache_logs }}"
     - name: Fix SElinux context for laravel

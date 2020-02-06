@@ -47,6 +47,10 @@
   yum:
     name: unzip
     state: latest 
+- name: Install MariaDB Server
+  yum:
+    name: mariadb-server
+    state: latest 
 - name: Install Redis
   yum:
     name: redis
