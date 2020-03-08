@@ -1,9 +1,9 @@
 ---
 - name: Deploy - Laravel CentOS - Dev Environment
   gather_facts: No
-  hosts: vm-pwcdev
+  hosts: vm-laradev  #set your vm dev
   vars:
-    server_name: 'laravel.lan'
+    server_name: 'alumni.pwc.lan'
     app_root: '/srv/www/app/http/'
     document_root: '/srv/www/app/http/public'
     apache_logs: '/srv/www/app/logs'
@@ -15,21 +15,6 @@
         src: templates/vhost.j2 
         dest: /etc/httpd/conf.d/vhost.conf
         backup: yes 
-    - name: Enable and Running Httpd
-      systemd:
-        name: httpd
-        enabled: yes
-        state: started
-    - name: Enable and Running MariaDB
-      systemd:
-        name: mariadb
-        enabled: yes
-        state: started
-    - name: Enable and Running Redis Server
-      systemd:
-        name: redis
-        enabled: yes
-        state: started
     - name: Enable Firewall Rules (http)
       firewalld:
         service: http
@@ -121,7 +106,18 @@
       command:  "chcon -R -t httpd_sys_rw_content_t {{ app_root }}/storage"
     - name: Fix SElinux context for laravel
       command:  "chcon -R -t httpd_sys_rw_content_t {{ app_root }}/bootstrap/cache"
-    - name: Reload Httpd
+    - name: Enable and Running MariaDB
+      systemd:
+        name: mariadb
+        enabled: yes
+        state: started
+    - name: Enable and Running Redis Server
+      systemd:
+        name: redis
+        enabled: yes
+        state: started
+    - name: Enable and Running Httpd
       systemd:
         name: httpd
-        state: reloaded
+        enabled: yes
+        state: started
