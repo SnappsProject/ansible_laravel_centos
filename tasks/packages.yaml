@@ -60,3 +60,10 @@
   yum:
     name: vim
     state: latest 
+- name: Add NodeJS Repository
+  command: 'curl -sL https://rpm.nodesource.com/setup_12.x | bash -'
+- name: Install Development Tools
+  yum:
+    name: 
+      - gcc-c++
+      - make
